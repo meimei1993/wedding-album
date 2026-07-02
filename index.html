@@ -222,6 +222,20 @@
       .top .quote{font-size:1.15rem}
       .cover-content .quote{max-width:92%}
       .spread-photo{top:8px; bottom:28px}
+
+      /*
+        手機橫向跨頁：
+        原本書本框太高，background-size:200% 100% 會把橫圖往高度拉長。
+        只在橫向跨頁顯示時，讓書本高度改為接近 3:2 的照片比例。
+      */
+      .book-wrap.landscape-mobile{
+        height:calc((94vw - 24px) / 1.5 + 36px);
+        min-height:0;
+      }
+      .book-wrap.landscape-mobile .spread-photo{
+        top:8px;
+        bottom:28px;
+      }
     }
     @media (max-width:460px){
       :root{--book-h:470px}
@@ -249,7 +263,7 @@
     <div class="quote">I love you for all that you are, all that you have been, and all you’re yet to be.</div>
   </header>
 
-  <main class="book-wrap" aria-label="婚禮電子相簿">
+  <main class="book-wrap" id="bookWrap" aria-label="婚禮電子相簿">
     <div class="book" id="book"></div>
   </main>
 
@@ -377,7 +391,7 @@
         const cls = side.kind === "landscape-left" ? "spread-left" : "spread-right";
         const num = String(side.number).padStart(2, "0");
         return `
-          <div class="spread-page">
+          <div class="spread-page" data-spread-kind="landscape">
             <div class="spread-photo ${cls}" data-bg="${side.photo.src}"></div>
             <span class="page-number">${num}</span>
           </div>
@@ -452,6 +466,23 @@
         page.classList.toggle("flipped", shouldFlip);
         page.style.zIndex = shouldFlip ? String(index + 1) : String(pages.length - index);
       });
+
+      // 只有手機在橫向跨頁時改變書本高度；桌機維持原本比例與外觀。
+      const bookWrap = document.getElementById("bookWrap");
+      const activeSpreadIndex = currentSheet === 0 ? 0 : currentSheet;
+      const visiblePages = [
+        pages[activeSpreadIndex],
+        pages[Math.max(0, activeSpreadIndex - 1)]
+      ].filter(Boolean);
+      const isLandscapeSpread = visiblePages.some(page =>
+        page.querySelector('[data-spread-kind="landscape"]')
+      );
+
+      if (window.matchMedia("(max-width: 720px)").matches && isLandscapeSpread) {
+        bookWrap.classList.add("landscape-mobile");
+      } else {
+        bookWrap.classList.remove("landscape-mobile");
+      }
 
       loadVisibleAssets();
 
@@ -534,6 +565,11 @@
       } catch (error) {
         alert("找不到 wedding-music.mp3。請確認音樂檔與 HTML 放在同一個資料夾。");
       }
+    });
+
+    window.addEventListener("resize", updateBook);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(updateBook, 120);
     });
 
     updateBook();
