@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WE ARE MARRIED｜電子相簿</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Noto+Serif+TC:wght@400;500;600&display=swap');
+
+    :root{
+      --book-w:min(94vw, 1000px);
+      --book-h:min(70vh, 640px);
+      --paper:#fffdf8;
+      --ink:#4c433b;
+      --gold:#ba925c;
+      --gold-soft:#f0d6ae;
+      --spark:#fff6d9;
+      --cover:#8f684b;
+    }
+
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0;
+      color:var(--ink);
+      overflow-x:hidden;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(235,215,184,.65), transparent 28rem),
+        radial-gradient(circle at 88% 78%, rgba(238,222,205,.78), transparent 27rem),
+        #f6f0e9;
+      font-family:"Noto Serif TC","PingFang TC","Microsoft JhengHei",serif;
+      position:relative;
+    }
+
+    .sparkles{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:0;
+    }
+    .sparkles span{
+      position:absolute;
+      color:rgba(255,255,255,.88);
+      text-shadow:
+        0 0 7px rgba(255,243,204,.95),
+        0 0 18px rgba(255,223,159,.58);
+      animation:twinkle ease-in-out infinite;
+      opacity:.88;
+    }
+    .sparkles .s1{left:8%; top:14%; font-size:20px; animation-duration:2.8s}
+    .sparkles .s2{left:18%; top:72%; font-size:15px; animation-duration:3.6s}
+    .sparkles .s3{left:31%; top:9%; font-size:12px; animation-duration:2.5s}
+    .sparkles .s4{left:43%; top:81%; font-size:18px; animation-duration:3.1s}
+    .sparkles .s5{left:56%; top:13%; font-size:17px; animation-duration:2.9s}
+    .sparkles .s6{left:64%; top:66%; font-size:13px; animation-duration:3.8s}
+    .sparkles .s7{left:76%; top:18%; font-size:18px; animation-duration:3.2s}
+    .sparkles .s8{left:85%; top:76%; font-size:14px; animation-duration:2.7s}
+    .sparkles .s9{left:92%; top:28%; font-size:12px; animation-duration:3.9s}
+
+    @keyframes twinkle{
+      0%,100%{opacity:.25; transform:scale(.8) rotate(0deg)}
+      50%{opacity:1; transform:scale(1.18) rotate(14deg)}
+    }
+
+    .top{
+      padding:36px 16px 12px;
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+    .top p.overline{
+      margin:0;
+      font-size:.76rem;
+      letter-spacing:.22em;
+      color:#9c7a57;
+    }
+    .top h1{
+      margin:10px 0 8px;
+      font-size:clamp(1.7rem,4vw,2.8rem);
+      font-weight:500;
+      letter-spacing:.16em;
+      position:relative;
+      display:inline-block;
+      padding:0 18px;
+    }
+    .top h1::before,
+    .top h1::after{
+      content:"✦";
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      color:#e8c789;
+      text-shadow:0 0 10px rgba(255,233,180,.9);
+      font-size:.9em;
+    }
+    .top h1::before{left:-8px}
+    .top h1::after{right:-8px}
+    .top .quote{
+      margin:4px auto 0;
+      max-width:900px;
+      padding:0 16px;
+      color:#b28656;
+      font-family:"Great Vibes","Brush Script MT","Segoe Script",cursive;
+      font-size:clamp(1.15rem,2.2vw,1.9rem);
+      line-height:1.45;
+    }
+
+    .book-wrap{
+      width:var(--book-w);
+      height:var(--book-h);
+      min-height:420px;
+      margin:20px auto 0;
+      perspective:2400px;
+      position:relative;
+      z-index:1;
+    }
+
+    .book{
+      width:100%;
+      height:100%;
+      position:relative;
+      transform-style:preserve-3d;
+      border-radius:5px 14px 14px 5px;
+      box-shadow:
+        0 30px 50px rgba(79,56,38,.22),
+        0 7px 12px rgba(79,56,38,.16);
+    }
+
+    .book::before{
+      content:"";
+      position:absolute;
+      left:50%;top:0;bottom:0;
+      width:2px;
+      transform:translateX(-1px);
+      background:linear-gradient(to right, rgba(69,49,32,.17), rgba(255,255,255,.52), rgba(69,49,32,.12));
+      z-index:100;
+      pointer-events:none;
+    }
+
+    .page{
+      position:absolute;
+      inset:0 auto 0 50%;
+      width:50%;
+      transform-origin:left center;
+      transform-style:preserve-3d;
+      transition:transform 1.05s cubic-bezier(.6,.04,.22,.98);
+      z-index:1;
+    }
+
+    .page.flipped{
+      transform:rotateY(-180deg);
+    }
+
+    .page .front, .page .back{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
+      background:var(--paper);
+      border-radius:0 12px 12px 0;
+    }
+
+    .page .back{
+      transform:rotateY(180deg);
+      border-radius:12px 0 0 12px;
+    }
+
+    .page.flipped .front{
+      box-shadow:inset -14px 0 18px rgba(67,47,33,.12);
+    }
+    .page:not(.flipped) .front{
+      box-shadow:inset 10px 0 18px rgba(67,47,33,.08);
+    }
+
+    .page-cover .front{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      overflow:hidden;
+      color:white;
+      border-radius:0 12px 12px 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,240,217,.18), transparent 26%),
+        radial-gradient(circle at 82% 78%, rgba(255,227,183,.18), transparent 24%),
+        linear-gradient(135deg,#7c5740 0%, #b4825a 52%, #6e4b38 100%);
+    }
+    .page-cover .front::before,
+    .page-cover .front::after{
+      content:"✦";
+      position:absolute;
+      color:rgba(255,242,204,.95);
+      text-shadow:
+        0 0 8px rgba(255,246,212,.95),
+        0 0 20px rgba(255,222,154,.55);
+      animation:twinkle 3s ease-in-out infinite;
+      pointer-events:none;
+      z-index:2;
+    }
+    .page-cover .front::before{top:16%; left:10%; font-size:22px}
+    .page-cover .front::after{bottom:16%; right:11%; font-size:18px; animation-delay:.8s}
+
+    .page-cover .front .cover-sheen{
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg, rgba(255,255,255,.06), transparent 35%, transparent 70%, rgba(255,255,255,.04));
+      z-index:1;
+      pointer-events:none;
+    }
+
+    .page-cover .back{
+      background:#f7f0e5;
+    }
+
+    .cover-content{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:34px 28px;
+      z-index:3;
+    }
+    .cover-content::before,
+    .cover-content::after{
+      content:none;
+    }
+    .cover-content .small{
+      letter-spacing:.24em;
+      font-size:.72rem;
+      margin:0 0 24px;
+      color:#f7e2be;
+      text-align:center;
+    }
+    .cover-content h2{
+      margin:0;
+      font-size:clamp(2.2rem,5vw,4.2rem);
+      letter-spacing:.16em;
+      font-weight:500;
+      line-height:1.25;
+      text-align:center;
+      text-shadow:0 2px 10px rgba(45,24,11,.18);
+    }
+    .cover-content .quote{
+      margin:22px auto 0;
+      max-width:86%;
+      color:#fff4df;
+      font-family:"Great Vibes","Brush Script MT","Segoe Script",cursive;
+      font-size:clamp(1.12rem,2.2vw,2rem);
+      line-height:1.45;
+      text-align:center;
+      text-shadow:0 2px 8px rgba(78,43,18,.16);
+    }
+    .cover-content .date{
+      margin:24px 0 0;
+      font-size:.84rem;
+      letter-spacing:.17em;
+      color:#f3dbc0;
+      text-align:center;
+    }
+
+    .blank-left{
+      height:100%;
+      background:
+        linear-gradient(90deg, rgba(174,147,115,.10), transparent 15%),
+        #f7f0e5;
+    }
+
+    .photo-page{
+      height:100%;
+      padding:clamp(10px,1.8vw,18px);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.35),transparent 40%),
+        var(--paper);
+    }
+    .photo-frame{
+      width:100%;
+      flex:1;
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#f7f1e8;
+      box-shadow:
+        0 6px 14px rgba(73,55,39,.12),
+        inset 0 0 0 1px rgba(186,146,92,.12);
+      padding:8px;
+      border-radius:2px;
+      position:relative;
+    }
+    .photo-frame::before{
+      content:"✧";
+      position:absolute;
+      top:8px;
+      right:10px;
+      color:#ecd39d;
+      font-size:15px;
+      text-shadow:0 0 8px rgba(255,232,180,.8);
+      opacity:.92;
+    }
+    .photo-frame img{
+      display:block;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      background:#f7f1e8;
+    }
+    .photo-caption{
+      min-height:1.3em;
+      font-size:clamp(.72rem,1.2vw,.95rem);
+      letter-spacing:.1em;
+      color:#796958;
+      text-align:center;
+    }
+    .page-number{
+      font: .68rem/1 Arial,sans-serif;
+      color:#a8957f;
+      position:absolute;
+      bottom:12px;
+    }
+    .front .page-number{right:18px}
+    .back .page-number{left:18px}
+
+    .last-page .front{
+      background:
+        radial-gradient(circle at 75% 30%, rgba(243,219,183,.65), transparent 24rem),
+        #fbf5ec;
+    }
+    .last-content{
+      height:100%;
+      display:flex;align-items:center;justify-content:center;
+      padding:35px;text-align:center;line-height:2;
+      color:#8a6f51;
+      letter-spacing:.12em;
+      font-size:clamp(1rem,2vw,1.5rem);
+      position:relative;
+    }
+    .last-content::before,
+    .last-content::after{
+      content:"✦";
+      position:absolute;
+      color:#e8c789;
+      text-shadow:0 0 10px rgba(255,233,180,.9);
+      animation:twinkle 3.2s ease-in-out infinite;
+    }
+    .last-content::before{left:18%; top:26%; font-size:18px}
+    .last-content::after{right:20%; bottom:27%; font-size:14px; animation-delay:1s}
+
+    .controls{
+      width:min(94vw,1000px);
+      margin:22px auto 52px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:14px;
+      color:#795f45;
+      position:relative;
+      z-index:1;
+    }
+    button.control{
+      border:1px solid rgba(148,112,73,.38);
+      background:rgba(255,253,248,.72);
+      color:#725639;
+      min-width:46px;height:40px;
+      padding:0 15px;
+      cursor:pointer;
+      border-radius:999px;
+      font:600 .83rem/1 "Noto Serif TC","Microsoft JhengHei",serif;
+      letter-spacing:.06em;
+      transition:.2s ease;
+    }
+    button.control:hover:not(:disabled){
+      transform:translateY(-2px);
+      background:white;
+      box-shadow:0 7px 14px rgba(93,66,39,.12);
+    }
+    button.control:disabled{opacity:.35;cursor:not-allowed}
+    .page-indicator{
+      min-width:78px;text-align:center;
+      font: .8rem/1 Arial,sans-serif;
+      letter-spacing:.05em;
+    }
+    .hint{
+      text-align:center;
+      margin:0 12px 26px;
+      color:#917b62;
+      font-size:.78rem;
+      letter-spacing:.06em;
+      position:relative;
+      z-index:1;
+    }
+    .music-toggle{
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      z-index:20;
+      width:48px;
+      height:48px;
+      border:1px solid rgba(255,255,255,.65);
+      border-radius:50%;
+      background:rgba(154,112,79,.84);
+      color:#fffaf1;
+      box-shadow:0 8px 20px rgba(89,58,37,.2);
+      cursor:pointer;
+      font-size:1.1rem;
+      transition:transform .2s ease, background .2s ease;
+    }
+    .music-toggle:hover{
+      transform:translateY(-2px) scale(1.03);
+      background:rgba(130,90,61,.95);
+    }
+
+    @media (max-width:720px){
+      :root{--book-h:min(68vh,560px)}
+      .book-wrap{min-height:390px}
+      .top{padding-top:28px}
+      .page{width:50%}
+      .photo-page{padding:9px;gap:8px}
+      .photo-frame{padding:4px}
+      .photo-page{padding:8px;gap:6px}
+      .photo-frame{padding:6px}
+      .front .page-number{right:10px}
+      .back .page-number{left:10px}
+      .top .quote{font-size:1.15rem}
+      .cover-content .quote{max-width:92%}
+    }
+
+    @media (max-width:460px){
+      :root{--book-h:470px}
+      .book-wrap{min-height:0}
+      .cover-content h2{font-size:1.9rem}
+      .cover-content .small{font-size:.56rem;margin-bottom:14px}
+      .cover-content .date{font-size:.62rem;margin-top:14px}
+      .cover-content .quote{font-size:1rem}
+      .top .quote{font-size:1rem}
+      .photo-caption{font-size:.62rem}
+      .page-number{bottom:7px;font-size:.56rem}
+      .controls{margin-top:16px}
+      .hint{font-size:.7rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkles" aria-hidden="true">
+    <span class="s1">✦</span>
+    <span class="s2">✧</span>
+    <span class="s3">✦</span>
+    <span class="s4">✧</span>
+    <span class="s5">✦</span>
+    <span class="s6">✧</span>
+    <span class="s7">✦</span>
+    <span class="s8">✧</span>
+    <span class="s9">✦</span>
+  </div>
+
+  <header class="top">
+    <p class="overline">OUR WEDDING ALBUM</p>
+    <h1>我們結婚了</h1>
+    <div class="quote">I love you for all that you are, all that you have been, and all you’re yet to be.</div>
+  </header>
+
+  <main class="book-wrap" aria-label="婚禮電子相簿">
+    <div class="book" id="book"></div>
+  </main>
+
+  <div class="controls">
+    <button class="control" id="prevBtn" type="button">← 上一頁</button>
+    <span class="page-indicator" id="pageIndicator">封面</span>
+    <button class="control" id="nextBtn" type="button">下一頁 →</button>
+  </div>
+  <p class="hint">點擊相簿左右側翻頁，也可以用鍵盤 ← → 或手機左右滑動</p>
+
+  <!-- 把 wedding-music.mp3 和此 HTML 放在同一個資料夾；按右下角音符開始或暫停。 -->
+  <audio id="weddingMusic" loop preload="metadata">
+    <source src="wedding-music.mp3" type="audio/mpeg">
+  </audio>
+  <button class="music-toggle" id="musicToggle" type="button" aria-label="播放背景音樂" title="播放背景音樂">♫</button>
+
+  <script>
+    /*
+      使用方式
+      1. 把此 HTML 和 30 張照片放在同一個資料夾。
+      2. 照片檔名請依序命名為 photo01.jpg ~ photo30.jpg。
+      3. 若照片副檔名不是 jpg，請自行改成 png / jpeg / webp。
+      4. 照片會完整顯示、不裁切；直式與橫式照片周圍可能留有淡色空白。\n      5. 若想替照片加註文字，可在 caption 欄位填入。
+    */
+    const photos = Array.from({ length: 30 }, (_, index) => {
+      const number = String(index + 1).padStart(2, "0");
+      return {
+        src: `photo${number}.jpg`,
+        alt: `婚禮照片 ${index + 1}`,
+        caption: ""
+      };
+    });
+
+    const book = document.getElementById("book");
+    const pages = [];
+    let currentSheet = 0;
+    let touchStartX = 0;
+
+    const escapeHtml = (value = "") =>
+      value.replace(/[&<>"']/g, char => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+      }[char]));
+
+    function photoSide(photo, photoIndex) {
+      if (!photo) {
+        return `<div class="blank-left"></div>`;
+      }
+      const number = String(photoIndex + 1).padStart(2, "0");
+      return `
+        <div class="photo-page">
+          <div class="photo-frame">
+            <img src="${photo.src}" alt="${escapeHtml(photo.alt)}"
+              onerror="this.style.opacity='.22'; this.alt='找不到 ${photo.src}，請確認照片檔名';">
+          </div>
+          <div class="photo-caption">${escapeHtml(photo.caption || "")}</div>
+          <span class="page-number">${number}</span>
+        </div>
+      `;
+    }
+
+    const cover = document.createElement("section");
+    cover.className = "page page-cover";
+    cover.innerHTML = `
+      <div class="front">
+        <div class="cover-sheen"></div>
+        <div class="cover-content">
+          <p class="small">WEDDING PHOTO ALBUM</p>
+          <h2>我們結婚了</h2>
+          <div class="quote">I love you for all that you are, all that you have been, and all you’re yet to be.</div>
+          <p class="date">OUR FOREVER BEGINS HERE</p>
+        </div>
+      </div>
+      <div class="back"><div class="blank-left"></div></div>
+    `;
+    book.appendChild(cover);
+    pages.push(cover);
+
+    for (let i = 0; i < photos.length; i += 2) {
+      const sheet = document.createElement("section");
+      sheet.className = "page";
+      sheet.innerHTML = `
+        <div class="front">${photoSide(photos[i], i)}</div>
+        <div class="back">${photoSide(photos[i + 1], i + 1)}</div>
+      `;
+      book.appendChild(sheet);
+      pages.push(sheet);
+    }
+
+
+    pages.forEach((page, index) => {
+      page.style.zIndex = String(pages.length - index);
+      page.addEventListener("click", event => {
+        const box = page.getBoundingClientRect();
+        const isRightHalf = event.clientX > box.left + box.width / 2;
+        if (!page.classList.contains("flipped") && isRightHalf) goNext();
+        if (page.classList.contains("flipped") && !isRightHalf) goPrev();
+      });
+    });
+
+    function updateBook() {
+      pages.forEach((page, index) => {
+        const shouldFlip = index < currentSheet;
+        page.classList.toggle("flipped", shouldFlip);
+        page.style.zIndex = shouldFlip ? String(index + 1) : String(pages.length - index);
+      });
+
+      const indicator = document.getElementById("pageIndicator");
+      if (currentSheet === 0) {
+        indicator.textContent = "封面";
+      } else if (currentSheet >= pages.length) {
+        indicator.textContent = "最後一頁";
+      } else {
+        const firstPhoto = (currentSheet - 1) * 2 + 1;
+        const secondPhoto = Math.min(firstPhoto + 1, photos.length);
+        indicator.textContent = `${String(firstPhoto).padStart(2,"0")}–${String(secondPhoto).padStart(2,"0")} / ${photos.length}`;
+      }
+
+      document.getElementById("prevBtn").disabled = currentSheet === 0;
+      document.getElementById("nextBtn").disabled = currentSheet === pages.length;
+    }
+
+    function goNext() {
+      if (currentSheet >= pages.length) return;
+      startMusicOnFirstFlip();
+      currentSheet += 1;
+      updateBook();
+    }
+    function goPrev() {
+      if (currentSheet <= 0) return;
+      startMusicOnFirstFlip();
+      currentSheet -= 1;
+      updateBook();
+    }
+
+    document.getElementById("prevBtn").addEventListener("click", goPrev);
+    document.getElementById("nextBtn").addEventListener("click", goNext);
+
+    window.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight") goNext();
+      if (event.key === "ArrowLeft") goPrev();
+    });
+
+    book.addEventListener("touchstart", event => {
+      touchStartX = event.changedTouches[0].screenX;
+    }, { passive: true });
+
+    book.addEventListener("touchend", event => {
+      const move = event.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(move) < 42) return;
+      move < 0 ? goNext() : goPrev();
+    }, { passive: true });
+
+    const music = document.getElementById("weddingMusic");
+    const musicToggle = document.getElementById("musicToggle");
+    let musicHasStarted = false;
+
+    function setMusicButton(isPlaying) {
+      musicToggle.textContent = isPlaying ? "❚❚" : "♫";
+      musicToggle.setAttribute("aria-label", isPlaying ? "暫停背景音樂" : "播放背景音樂");
+      musicToggle.title = isPlaying ? "暫停背景音樂" : "播放背景音樂";
+    }
+
+    async function startMusicOnFirstFlip() {
+      if (musicHasStarted) return;
+      try {
+        await music.play();
+        musicHasStarted = true;
+        setMusicButton(true);
+      } catch (error) {
+        // 若瀏覽器或檔案狀態阻擋播放，仍保留右下角按鈕讓使用者手動播放。
+      }
+    }
+
+    musicToggle.addEventListener("click", async () => {
+      try {
+        if (music.paused) {
+          await music.play();
+          musicHasStarted = true;
+          setMusicButton(true);
+        } else {
+          music.pause();
+          setMusicButton(false);
+        }
+      } catch (error) {
+        alert("找不到 wedding-music.mp3。請確認音樂檔與 HTML 放在同一個資料夾。");
+      }
+    });
+
+    updateBook();
+  </script>
+</body>
+</html>
